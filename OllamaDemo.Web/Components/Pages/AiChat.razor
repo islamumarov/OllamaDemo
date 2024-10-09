@@ -1,0 +1,72 @@
+@page "/AiChat"
+@using OllamaDemo.Web.Model
+@attribute [StreamRendering(true)]
+@attribute [OutputCache(Duration = 5)]
+@rendermode InteractiveServer
+
+@inject ChatApiClient ChatApi
+
+
+<!-- Chat Area -->
+<main class="flex-grow p-6 overflow-y-auto">
+    <div class="bg-gray-700 rounded-lg shadow-lg p-4 h-full animate-in fade-in duration-300">
+        <div id="chat-box" class="h-[600px] overflow-y-scroll mb-4 p-4 bg-gray-600 rounded-lg">
+            @foreach (var message in Messages)
+            {
+                if (message.Owner == MessageOwner.User)
+                {
+                    <div class="text-white mb-2 flex justify-between items-baseline">
+                        <span>You: @message.Text</span>
+                         <span class='text-gray-400 text-xs'>@message.Date</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-green-400 mb-2 flex justify-between items-baseline">
+                        <span>AI: @message.Text </span>
+                        <span class='text-gray-400 text-xs'>@message.Date</span>
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- Input Area -->
+        <div class="flex items-center">
+            <input @bind="Message.Text" type="text" id="user-input" placeholder="Type your message..." class="flex-grow p-2 rounded-l-lg border border-gray-600 bg-gray-900 text-white focus:outline-none focus:ring focus:ring-blue-500"/>
+            <button id="send-button" @onclick="SendMessage" class="m-3 bg-blue-600 text-white px-4 py-2 rounded-l-lg rounded-r-lg hover:bg-blue-500 transition duration-150 ease-in-out">Send</button>
+        </div>
+    </div>
+</main>
+
+@code {
+    string datePattern = "dd-MM-yy H:mm:ss";
+    private Message Message = new Message()
+    {
+        Text = "",
+    };
+    private List<Message> Messages { get; set; } = [];
+
+    private async Task SendMessage()
+    {
+        Messages.Add(new Message()
+        {
+            Owner = MessageOwner.User,
+            Text = Message.Text,
+            Date = DateTime.Now.ToString(datePattern)
+        });
+
+        var aiResponse = await ChatApi.GetMessageAsync(Message?.Text);
+
+        Messages.Add(
+            new Message()
+            {
+                Owner = MessageOwner.Ai,
+                Text = aiResponse,
+                Date = DateTime.Now.ToString(datePattern)
+            });
+
+        Message.Text = "";
+
+    }
+    
+}

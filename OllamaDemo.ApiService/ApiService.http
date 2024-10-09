@@ -1,0 +1,9 @@
+### GET request to example server
+http://localhost:5395/weatherforecast
+###
+
+
+POST http://localhost:5395/chat
+Content-Type: application/json
+
+"What can you do?"
